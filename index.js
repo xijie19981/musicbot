@@ -209,4 +209,4 @@ client.on("message", async(message) =>{
 
 
 })
-client.login("Nzk3NTEyMjMyMDQwMzk4ODc4.X_njJQ.ZSEuGahA_6mYCkMGiWk-zyQwiyY")
+client.login("Nzk3NTEyMjMyMDQwMzk4ODc4.X_njJQ.CrBhhNksdyTomdOlwDzb2rFVSLs")
