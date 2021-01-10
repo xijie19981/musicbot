@@ -18,7 +18,7 @@ client.on("ready", () => {
 })
 
 client.on("message", async(message) => {
-    const prefix = '-j';
+    const prefix = '!j';
 
     const serverQueue = queue.get(message.guild.id);
 
