@@ -1,6 +1,7 @@
 const { executionAsyncResource } = require('async_hooks');
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
+
 const { YTSearcher } = require('ytsearcher');
 
 const searcher = new YTSearcher({
@@ -13,11 +14,10 @@ const client = new Discord.Client();
 const queue = new Map();
 
 client.on("ready", () => {
-    console.log("JOEL is online!")
-
+    console.log("I am online!")
 })
 
-client.on("message", async(message) =>{
+client.on("message", async(message) => {
     const prefix = '-j';
 
     const serverQueue = queue.get(message.guild.id);
@@ -36,7 +36,7 @@ client.on("message", async(message) =>{
             skip(message, serverQueue);
             break;
         case 'pause':
-            pause(serverQueue) ;
+            pause(serverQueue);
             break;
         case 'resume':
             resume(serverQueue);
@@ -47,15 +47,14 @@ client.on("message", async(message) =>{
         case 'queue':
             Queue(serverQueue);
             break;
-    }
-    
+        }
 
     async function execute(message, serverQueue){
         let vc = message.member.voice.channel;
         if(!vc){
-            return message.channel.send("pLeAsE JoIn A vOiCe ChaT FiRst")
-        } else {
-            let result = await searcher.search(args.join(" "), {type: "video" })
+            return message.channel.send("PlEaSe JoIn A vOiCe ChAt FiRsT");
+        }else{
+            let result = await searcher.search(args.join(" "), { type: "video" }) 
             const songInfo = await ytdl.getInfo(result.first.url)
 
             let song = {
@@ -85,14 +84,12 @@ client.on("message", async(message) =>{
                 }catch (err){
                     console.error(err);
                     queue.delete(message.guild.id);
-                    return message.channel.send(`uNaBle To JoIn thE VoIcE cHaT ${err}`)
+                    return message.channel.send(`UnAbLe tO jOiN a VoIcE cHaT ${err}`)
                 }
-                }else{
-                    serverQueue.songs.push(song);
-                    return message.channel.send(`tHe SoNg HaS bEeN AdDeD ${song.url}`);
+            }else{
+                serverQueue.songs.push(song);
+                return message.channel.send(`THe sOnG hAs bEeN aDdEd ${song.url}`);
             }
-            
-
         }
     }
     function play(guild, song){
@@ -103,110 +100,104 @@ client.on("message", async(message) =>{
             return;
         }
         const dispatcher = serverQueue.connection
-        .play(ytdl(song.url))
-        .on('finish', () =>{
-            if(serverQueue.loopone){
+            .play(ytdl(song.url))
+            .on('finish', () =>{
+                if(serverQueue.loopone){  
+                    play(guild, serverQueue.songs[0]);
+                }
+                else if(serverQueue.loopall){
+                    serverQueue.songs.push(serverQueue.songs[0])
+                    serverQueue.songs.shift()
+                }else{
+                    serverQueue.songs.shift()
+                }
                 play(guild, serverQueue.songs[0]);
-            }
-            else if(serverQueue.loopall){
-                serverQueue.songs.push(serverQueue.songs[0])
-                serverQueue.songs.shift()
-            }else{
-                serverQueue.songs.shift()
-            }
-            serverQueue.songs.shift();
-            play(guild, serverQueue.songs[0]);
-        })
+            })
             serverQueue.txtChannel.send(`NoW pLaYiNg ${serverQueue.songs[0].url}`)
-        
     }
     function stop (message, serverQueue){
         if(!message.member.voice.channel)
-        return message.channel.send("yOu NeEd tO JoIn tHe vOiCe ChAt FiRsT")
+            return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt")
         serverQueue.songs = [];
         serverQueue.connection.dispatcher.end();
     }
     function skip (message, serverQueue){
         if(!message.member.voice.channel)
-        return message.channel.send("yOu NeEd tO jOiN tHe VoIcE cHaT fiRsT");
+            return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt");
         if(!serverQueue)
-        return message.channel.send("tHeRe iS NoThInG tO sKiP");
+            return message.channel.send("ThErE iS nTh tO sKiP");
         serverQueue.connection.dispatcher.end();
     }
     function pause(serverQueue){
         if(!serverQueue.connection)
-        return message.channel.send("nO mUsIc CuRrEnTlY pLaYiNg");
+            return message.channel.send("No MuSiC CuRrEnTlY pLaYiNg");
         if(!message.member.voice.channel)
-        return message.channel.send("yOu MuSt Be iN a VoIcE cHaNnEl")
+            return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt")
         if(serverQueue.connection.dispatcher.paused)
-        return message.channel.send("sOnG iS aLrEaDy PaUsEd");
+            return message.channel.send("ThE sOnG iS aLrEaDy pAuSeD");
         serverQueue.connection.dispatcher.pause();
         message.channel.send("sOnG pAuSeD");
-
     }
-    function resume(){
+    function resume(serverQueue){
         if(!serverQueue.connection)
-        return message.channel.send("nO mUsIc CuRrEnTlY pLaYiNg");
+            return message.channel.send("ThErS iS nO mUsIc cUrReNtLy pLaYiNg");
         if(!message.member.voice.channel)
-        return message.channel.send("yOu MuSt Be iN a VoIcE cHaNnEl")
+            return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt")
         if(serverQueue.connection.dispatcher.resumed)
-        return message.channel.send("sOnG iS aLrEaDy rEsUmEd");
+            return message.channel.send("ThE sOnG iS aLrEaDy PlAyInG");
         serverQueue.connection.dispatcher.resume();
-        message.channel.send("sOnG rEsUmEd");
-
+        message.channel.send("SoNg ResUmEd");
     }
     function Loop(args, serverQueue){
         if(!serverQueue.connection)
-        return message.channel.send("nO mUsIc CuRrEnTlY pLaYiNg");
+            return message.channel.send("ThE iS nO MuSiC cUrReNtLy pLaYiNg");
         if(!message.member.voice.channel)
-        return message.channel.send("yOu MuSt Be iN a VoIcE cHaNnEl")
+            return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt")
 
         switch(args[0].toLowerCase()){
-            case 'all':
-                serverQueue.loopall = !serverQueue.loopall;
-                serverQueue.loopone = false;
+           case 'all':
+               serverQueue.loopall = !serverQueue.loopall;
+               serverQueue.loopone = false;
 
-                if(serverQueue.loopall === true)
-                message.channel.send("LoOp aLl HaS bEeN tUrNeD On");
-                else
-                message.channel.send("LoOp aLl hAs bEeN oFfEd");
+               if(serverQueue.loopall === true)
+                   message.channel.send("LoOp aLl HaS bEeN tUrNeD oN");
+               else
+                    message.channel.send("LoOp aLl HaS bEeN tUrNeD oFf");
 
-                break;
+               break;
             case 'one':
                 serverQueue.loopone = !serverQueue.loopone;
                 serverQueue.loopall = false;
 
                 if(serverQueue.loopone === true)
-                message.channel.send("LoOp OnE HaS bEeN tUrNeD On");
+                    message.channel.send("LoOp aLl HaS bEeN tUrNeD oN");
                 else
-                message.channel.send("LoOp OnE hAs bEeN oFfEd");
+                    message.channel.send("LoOp aLl HaS bEeN tUrNeD oFf");
                 break;
             case 'off':
-                serverQueue.loopone = false;
-                serverQueue.loopall = false;
+                    serverQueue.loopall = false;
+                    serverQueue.loopone = false;
 
-                message.channel.send("lOoP hAs bEeN tUrNeD oFf");
+                    message.channel.send("LoOp aLl HaS bEeN tUrNeD oFf");
                 break;
             default:
-                message.channel.send("pLeAsE sPeCiFy wHaT lOoP yOu Want. !loop <one/all/off>");
+                message.channel.send("PlEaSe sPeCiFy wHaT lOoP yOu WaNt. !loop <one/all/off>"); 
         }
     }
-        function Queue(serverQueue){
+    function Queue(serverQueue){
         if(!serverQueue.connection)
-        return message.channel.send("nO mUsIc CuRrEnTlY pLaYiNg");
+            return message.channel.send("ThEreS iS nO mUsIc cUrReNtLy pLaYiNg");
         if(!message.member.voice.channel)
-        return message.channel.send("yOu MuSt Be iN a VoIcE cHaNnEl")
+            return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt")
 
         let nowPlaying = serverQueue.songs[0];
-        let qMsg = `Now playing : ${nowPlaying.title}\n------------------------\n`
+        let qMsg =  `Now playing: ${nowPlaying.title}\n--------------------------\n`
 
-        for(var i = 1;i < serverQueue.songs.length; i++){
+        for(var i = 1; i < serverQueue.songs.length; i++){
             qMsg += `${i}. ${serverQueue.songs[i].title}\n`
-    
         }
-        message.channel.send('```' + qMsg + 'ReQuEsTeD bY : ' + message.author.username + '```');
+
+        message.channel.send('```' + qMsg + 'Requested by: ' + message.author.username + '```');
     }
-
-
 })
 client.login(process.env.token)
