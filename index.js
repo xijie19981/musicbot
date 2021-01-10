@@ -154,7 +154,7 @@ client.on("message", async(message) => {
         if(!message.member.voice.channel)
             return message.channel.send("YoU nEeD tO jOiN a VoIcE cHat FirSt")
 
-        switch(args[0].toLowerCase()){
+        switch(args[0]){
            case 'all':
                serverQueue.loopall = !serverQueue.loopall;
                serverQueue.loopone = false;
